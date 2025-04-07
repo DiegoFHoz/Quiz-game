@@ -1,0 +1,225 @@
+/* Reset completo */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start !important; /* Forzar el alineamiento arriba */
+    background-color: #4EB8E5;
+}
+
+body {
+    align-items: flex-start; /* Cambiar de center a flex-start */
+}
+
+.game-container {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding-top: 20px;
+}
+
+.title {
+    width: 100%;
+    text-align: center;
+    margin-top: -168px;
+}
+
+.title img {
+    max-width: 350px;
+    height: auto;
+}
+
+.categories-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+    margin-top: -221px;
+}
+
+.category {
+    width: 112px;
+    height: 112px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default; /* Indicar que es una zona de drop */
+}
+
+.category img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.central-area {
+    width: 80%;
+    height: 220px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -12px;
+}
+
+.background-area {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.draggable {
+    position: absolute;
+    max-width: 150px;
+    max-height: 150px;
+    cursor: move;
+    z-index: 2;
+    user-select: none; /* Prevenir selección de texto */
+    -webkit-user-drag: element; /* Permitir arrastre en Safari */
+    animation: popIn 0.5s ease-out;
+}
+
+.drag-area {
+    width: 80%;
+    height: 100px;
+    background-color: #FF624D;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.game-stats {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 40px;
+    color: #FFE45C;
+    font-family: 'Arial Rounded MT Bold', 'Arial Black', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.game-stats .label {
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.game-stats .value {
+    font-size: 40px;
+    transition: transform 0.3s ease;
+}
+
+.game-stats .value.pop {
+    animation: scorePop 0.5s ease-out;
+}
+
+.game-stats .value.blink {
+    animation: blink 0.5s ease-in-out infinite;
+}
+
+.timer, .score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.countdown-number {
+    font-size: 200px;
+    font-family: 'Arial Rounded MT Bold', 'Arial Black', sans-serif;
+    text-shadow: 
+        4px 4px 0 #FF6B6B,
+        -4px -4px 0 #4EB8E5,
+        4px -4px 0 #FFD700,
+        -4px 4px 0 #98FB98;
+    color: white;
+    animation: countdownPop 0.8s ease-in-out;
+}
+
+@keyframes countdownPop {
+    0% {
+        transform: scale(0.3) rotate(-10deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.4) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes popIn {
+    0% {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes scorePop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.3);
+        color: #FFD700;
+    }
+    100% {
+        transform: scale(1);
+        color: #FFE45C;
+    }
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}

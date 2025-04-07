@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Sorty</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="title">
+            <img src="imagenes/titulo_juego.png" alt="Magic Sorty">
+        </div>
+
+        <div class="categories-container">
+            <div class="category">
+                <img src="imagenes/caja_animal_sin_fondo.png" alt="Animales">
+            </div>
+            <div class="category">
+                <img src="imagenes/caja_camiseta_sin_fondo.png" alt="Ropa">
+            </div>
+            <div class="category">
+                <img src="imagenes/caja_manzana_sin_fondo.png" alt="Comida">
+            </div>
+        </div>
+
+        <div class="central-area">
+            <img src="imagenes/area_central_redondeada.png" alt="Área central" class="background-area">
+            <img id="current-item" src="" alt="" class="draggable" draggable="true" style="display: none">
+        </div>
+
+        <div class="drag-area">
+            <div class="game-stats">
+                <div class="timer">
+                    <span class="label">Time:</span>
+                    <span class="value">55</span>
+                </div>
+                <div class="score">
+                    <span class="label">Score:</span>
+                    <span class="value">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script cargado correctamente');
+
+        // Variables globales
+        const items = {
+            animals: ['Gato.png', 'Perro.png', 'Pato.png', 'Conejo.png'],
+            clothes: ['Camiseta.png', 'Pantalon.png', 'Zapatos.png', 'Gorra.png'],
+            food: ['Manzana.png', 'Platano.png', 'Zanahoria.png', 'Pan.png']
+        };
+
+        let currentItem = {
+            type: 'animals',
+            index: 0
+        };
+        let score = 0;
+        let timeLeft = 50;
+        let timerInterval;
+
+        // Elementos DOM
+        const draggableItem = document.getElementById('current-item');
+        const categories = {
+            animals: document.querySelector('.category:nth-child(1)'),
+            clothes: document.querySelector('.category:nth-child(2)'),
+            food: document.querySelector('.category:nth-child(3)')
+        };
+        const scoreDisplay = document.querySelector('.score .value');
+        const timerDisplay = document.querySelector('.timer .value');
+
+        // Función de cuenta regresiva
+        function startCountdown() {
+            return new Promise(resolve => {
+                // Crear elementos de cuenta regresiva
+                const countdownOverlay = document.createElement('div');
+                countdownOverlay.className = 'countdown-overlay';
+                const countdownNumber = document.createElement('div');
+                countdownNumber.className = 'countdown-number';
+                countdownOverlay.appendChild(countdownNumber);
+                document.body.appendChild(countdownOverlay);
+
+                let count = 3;
+                
+                const interval = setInterval(() => {
+                    if (count > 0) {
+                        countdownNumber.textContent = count;
+                        countdownNumber.style.animation = 'none';
+                        countdownNumber.offsetHeight;
+                        countdownNumber.style.animation = 'countdownPop 0.8s ease-in-out';
+                        
+                        switch(count) {
+                            case 3:
+                                countdownNumber.style.color = '#FF6B6B';
+                                break;
+                            case 2:
+                                countdownNumber.style.color = '#4EB8E5';
+                                break;
+                            case 1:
+                                countdownNumber.style.color = '#FFD700';
+                                break;
+                        }
+                    } else {
+                        clearInterval(interval);
+                        countdownOverlay.remove();
+                        resolve();
+                    }
+                    count--;
+                }, 1000);
+            });
+        }
+
+        // Función para obtener el siguiente item aleatorio
+        function getNextRandomItem() {
+            const types = Object.keys(items);
+            const randomType = types[Math.floor(Math.random() * types.length)];
+            const itemsArray = items[randomType];
+            const randomIndex = Math.floor(Math.random() * itemsArray.length);
+            
+            return {
+                type: randomType,
+                src: itemsArray[randomIndex]
+            };
+        }
+
+        // Función para actualizar la imagen
+        function updateCurrentItem() {
+            const newItem = getNextRandomItem();
+            currentItem = newItem;
+            
+            // Primero ocultar la imagen
+            draggableItem.style.display = 'none';
+            draggableItem.style.opacity = '0';
+            
+            // Aplicar los estilos de posición
+            draggableItem.style.position = 'absolute';
+            draggableItem.style.left = '50%';
+            draggableItem.style.top = '50%';
+            draggableItem.style.transform = 'translate(-50%, -50%)';
+            
+            // Crear una imagen temporal para precargar
+            const tempImage = new Image();
+            tempImage.onload = function() {
+                // Una vez que la imagen está cargada, actualizar el src
+                draggableItem.src = tempImage.src;
+                draggableItem.dataset.type = newItem.type;
+                
+                // Mostrar la imagen ya posicionada
+                requestAnimationFrame(() => {
+                    draggableItem.style.display = 'block';
+                    draggableItem.style.opacity = '1';
+                });
+            };
+            
+            // Iniciar la carga de la imagen
+            tempImage.src = `imagenes/${newItem.src}`;
+        }
+
+        // Función para actualizar el timer
+        function updateTimer() {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 10) {
+                timerDisplay.style.color = '#FF6B6B';
+                timerDisplay.classList.add('blink');
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timerDisplay.classList.remove('blink');
+                alert(`¡Tiempo terminado! Puntuación final: ${score}`);
+            }
+        }
+
+        // Función para iniciar el juego
+        async function initGame() {
+            // Resetear valores iniciales
+            timeLeft = 50;
+            score = 0;
+            timerDisplay.textContent = timeLeft;
+            scoreDisplay.textContent = score;
+            
+            // Ocultar la imagen inicial
+            draggableItem.style.display = 'none';
+            
+            // Iniciar cuenta regresiva
+            await startCountdown();
+            
+            console.log('Cuenta regresiva terminada, iniciando juego');
+            
+            // Mostrar primera imagen
+            updateCurrentItem();
+            
+            // Iniciar el timer
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            console.log('Juego iniciado');
+        }
+
+        // Eventos de arrastre
+        if (draggableItem) {
+            // Detectar si es dispositivo móvil
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            
+            if (!isMobile) {
+                // Eventos para desktop
+                draggableItem.addEventListener('dragstart', (e) => {
+                    console.log('Iniciando arrastre');
+                    setTimeout(() => {
+                        e.target.style.opacity = '0';
+                    }, 0);
+                });
+
+                draggableItem.addEventListener('dragend', (e) => {
+                    console.log('Fin del arrastre');
+                    if (!e.dataTransfer.dropEffect || e.dataTransfer.dropEffect === 'none') {
+                        e.target.style.opacity = '1';
+                    }
+                });
+            } else {
+                // Eventos para móvil
+                draggableItem.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    this.style.opacity = '0.8';
+                }, { passive: false });
+                
+                draggableItem.addEventListener('touchmove', function(e) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    
+                    // Posicionamiento directo en el punto de toque
+                    this.style.position = 'fixed';
+                    this.style.left = (touch.clientX - 25) + 'px';  // Solo medio ancho del objeto para centrarlo
+                    this.style.top = (touch.clientY - 25) + 'px';   // Solo medio alto del objeto para centrarlo
+                    
+                }, { passive: false });
+                
+                draggableItem.addEventListener('touchend', function(e) {
+                    this.style.transform = 'scale(1)'; // Volvemos al tamaño normal
+                    e.preventDefault();
+                    const touch = e.changedTouches[0];
+                    let dropped = false;
+                    
+                    console.log('Touch End:', {
+                        touchX: touch.clientX,
+                        touchY: touch.clientY
+                    });
+                    
+                    Object.entries(categories).forEach(([type, category]) => {
+                        const rect = category.getBoundingClientRect();
+                        console.log(`Categoría ${type}:`, {
+                            left: rect.left,
+                            right: rect.right,
+                            top: rect.top,
+                            bottom: rect.bottom
+                        });
+                        
+                        if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                            touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                            
+                            console.log(`¡Soltado en categoría ${type}!`);
+                            const dropEvent = new Event('drop');
+                            dropEvent.dataTransfer = { dropEffect: 'move' };
+                            category.dispatchEvent(dropEvent);
+                            dropped = true;
+                        }
+                    });
+                    
+                    if (!dropped) {
+                        // Volver a la posición central
+                        this.style.position = 'absolute';
+                        this.style.left = '50%';
+                        this.style.top = '50%';
+                        this.style.transform = 'translate(-50%, -50%)';
+                        this.style.opacity = '1';
+                    }
+                }, { passive: false });
+            }
+        }
+
+        // Eventos para las zonas de destino
+        Object.entries(categories).forEach(([type, category]) => {
+            category.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            category.addEventListener('drop', (e) => {
+                e.preventDefault();
+                console.log(`Soltado en categoría ${type}`);
+
+                if (currentItem.type === type) {
+                    console.log('¡Categoría correcta!');
+                    score += 10;
+                    scoreDisplay.textContent = score;
+                    scoreDisplay.classList.add('pop');
+                    setTimeout(() => {
+                        scoreDisplay.classList.remove('pop');
+                    }, 500);
+                    
+                    category.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        category.style.transform = 'scale(1)';
+                    }, 200);
+
+                    draggableItem.style.opacity = '0';
+                    setTimeout(() => {
+                        draggableItem.style.display = 'none';
+                        updateCurrentItem();
+                    }, 200);
+                } else {
+                    console.log('Categoría incorrecta');
+                    // Volver al centro cuando es categoría incorrecta
+                    draggableItem.style.position = 'absolute';
+                    draggableItem.style.left = '50%';
+                    draggableItem.style.top = '50%';
+                    draggableItem.style.transform = 'translate(-50%, -50%)';
+                    draggableItem.style.opacity = '1';
+                    
+                    category.style.transition = 'all 0.1s ease';
+                    category.style.transform = 'translateX(10px)';
+                    setTimeout(() => {
+                        category.style.transform = 'translateX(-10px)';
+                        setTimeout(() => {
+                            category.style.transform = 'translateX(0)';
+                        }, 100);
+                    }, 100);
+                }
+            });
+        });
+
+        // Prevenir que el elemento se quede invisible si se suelta fuera
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.target.closest('.category') === null) {
+                draggableItem.style.opacity = '1';
+            }
+        });
+
+        // Iniciar el juego cuando se carga la página
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
